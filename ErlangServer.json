@@ -67,6 +67,7 @@
                 "content" : { "Fn::Join" : [ "", [
                   "#!/bin/bash                                                                        \n",
                   "                                                                                   \n",
+                  "DNS_IP=`curl http://checkip.amazonaws.com`                                         \n",
                   "ERLANG_ROOT_PATH=/home/ubuntu/                                                     \n",
                   "ERLANG_PROJECT_NAME=ebanx                                                          \n",
                   "ERLANG_PROJECT_PATH=${ERLANG_ROOT_PATH}/${ERLANG_PROJECT_NAME}                     \n",
@@ -94,6 +95,8 @@
                   "# Clone the erlang github repository                                               \n",
                   "echo \"======== Downloading Erlang project \"                                      \n",
                   "git -C ${ERLANG_ROOT_PATH} clone https://github.com/thiagoesteves/${ERLANG_PROJECT_NAME}.git \n",
+                  "# Change name to name@ip                                                           \n",
+                  "sudo sed -i \"s/-name.*/-name ${ERLANG_PROJECT_NAME}@${DNS_IP}/g\" ${ERLANG_PROJECT_PATH}/config/vm.args \n",
                   "echo \"======== Releasing Project \"                                               \n",
                   "cd ${ERLANG_PROJECT_PATH} && sudo make release                                     \n",
                   "sudo chown -R ubuntu:ubuntu ${ERLANG_PROJECT_PATH}/                                \n",
@@ -214,10 +217,12 @@
     "ErlangServerSecurityGroup" : {
       "Type" : "AWS::EC2::SecurityGroup",
       "Properties" : {
-        "GroupDescription" : "Enable HTTP access via port 80",
+        "GroupDescription" : "Enable HTTP via port 80, ssh by 22, epmd by 4369 and connection by 9100-9155 ",
         "SecurityGroupIngress" : [
           {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
-          {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}}
+          {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}},
+          {"IpProtocol" : "tcp", "FromPort" : "4369", "ToPort" : "4369", "CidrIp" : "0.0.0.0/0"},
+          {"IpProtocol" : "tcp", "FromPort" : "9100", "ToPort" : "9155", "CidrIp" : "0.0.0.0/0"},
         ]
       }
     }
